@@ -59,12 +59,24 @@ def main() -> None:
     st.title("🍽️ Zomato Restaurant Recommendations")
     st.caption("Find the best places to eat at your location")
 
-    db_path = os.environ.get("RESTAURANT_DB_PATH", str(DEFAULT_DB))
-    if not Path(db_path).is_file():
-        st.error(f"Database not found at `{db_path}`. Run the data pipeline first: `python -m phase1_data_pipeline`")
-        return
+    db_path = Path(os.environ.get("RESTAURANT_DB_PATH", str(DEFAULT_DB)))
+    if not db_path.is_file():
+        # First-time deploy: run the data pipeline to create the database (lazy import to avoid loading Hugging Face deps when DB exists).
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        with st.spinner("First-time setup: loading dataset (this may take a minute)…"):
+            try:
+                from phase1_data_pipeline.pipeline import run_pipeline
+                run_pipeline(db_path=str(db_path), max_rows=3000, clear_before=True)
+            except Exception as e:
+                st.error(f"Could not create database: {e}")
+                return
+        if not db_path.is_file():
+            st.error(f"Database not found at `{db_path}`. Run the data pipeline first: `python -m phase1_data_pipeline`")
+            return
+        st.success("Dataset loaded. You can now use the filters below.")
+        st.rerun()
 
-    store = get_store(Path(db_path))
+    store = get_store(db_path)
     try:
         locations = load_locations(store)
         cuisines = load_cuisines(store)
@@ -111,7 +123,7 @@ def main() -> None:
         max_cost=max_cost,
         cuisines=[cuisine] if cuisine else None,
     )
-    store = get_store(Path(db_path))
+    store = get_store(db_path)
     try:
         result = recommend(store, prefs, top_n=TOP_N, relax_if_empty=False)
     finally:
