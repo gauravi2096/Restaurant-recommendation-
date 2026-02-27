@@ -19,6 +19,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import streamlit as st
+import streamlit.components.v1 as components
 from phase1_data_pipeline.store import RestaurantStore
 from phase2_api.preferences import RecommendPreferences
 from phase2_api.orchestrator import recommend
@@ -79,6 +80,19 @@ PHASE4_CSS = """
 </style>
 """
 
+# CSS for restaurant grid when rendered via components.html (iframe does not inherit page CSS)
+GRID_IFRAME_CSS = """
+  .streamlit-zomato-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
+  .streamlit-zomato-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; }
+  .streamlit-zomato-card:hover { background: #fafafa; border-color: #8B1538; box-shadow: 0 4px 12px rgba(139, 21, 56, 0.08); }
+  .streamlit-zomato-card h3 { font-size: 1.05rem; font-weight: 600; margin: 0 0 0.35rem 0; }
+  .streamlit-zomato-card h3 a { color: #8B1538; text-decoration: none; }
+  .streamlit-zomato-card h3 a:hover { text-decoration: underline; }
+  .streamlit-zomato-meta { font-size: 0.85rem; color: #555; margin: 0.25rem 0; }
+  .streamlit-zomato-cuisines { font-size: 0.9rem; margin: 0.35rem 0 0 0; }
+  body { margin: 0; font-family: system-ui, sans-serif; background: transparent; }
+"""
+
 # Price range options: (label, min_cost, max_cost) — None means no bound
 PRICE_RANGES = [
     ("Any", None, None),
@@ -106,7 +120,9 @@ def load_cuisines(store: RestaurantStore) -> list[str]:
 
 
 def _render_restaurant_card(r: dict) -> str:
-    """HTML for one restaurant card (match Phase 4 js/app.js renderRestaurantCard)."""
+    """HTML for one restaurant card (match Phase 4 js/app.js renderRestaurantCard).
+    Returns a single line so st.markdown(unsafe_allow_html=True) does not treat
+    subsequent lines as Markdown code blocks."""
     name = html.escape(str(r.get("name") or "Unnamed"))
     location_val = str(r.get("location") or "")
     rate = r.get("rate")
@@ -123,13 +139,7 @@ def _render_restaurant_card(r: dict) -> str:
     meta = f"{location_val} · Rating {rate_str}/5 · {cost_str} for two"
     meta_esc = html.escape(meta)
     cuisines_block = f'<p class="streamlit-zomato-cuisines">{cuisines_str}</p>' if cuisines_str else ""
-    return f"""
-    <article class="streamlit-zomato-card">
-      <h3 class="streamlit-zomato-card-name">{name_html}</h3>
-      <p class="streamlit-zomato-meta">{meta_esc}</p>
-      {cuisines_block}
-    </article>
-    """
+    return f'<article class="streamlit-zomato-card"><h3 class="streamlit-zomato-card-name">{name_html}</h3><p class="streamlit-zomato-meta">{meta_esc}</p>{cuisines_block}</article>'
 
 
 def main() -> None:
@@ -238,7 +248,8 @@ def main() -> None:
     st.caption(count_text)
 
     cards_html = "".join(_render_restaurant_card(r) for r in restaurants)
-    st.markdown(f'<div class="streamlit-zomato-grid">{cards_html}</div>', unsafe_allow_html=True)
+    grid_doc = f"""<!DOCTYPE html><html><head><style>{GRID_IFRAME_CSS}</style></head><body><div class="streamlit-zomato-grid">{cards_html}</div></body></html>"""
+    components.html(grid_doc, height=min(800, 200 + len(restaurants) * 140), scrolling=True)
 
 
 main()
