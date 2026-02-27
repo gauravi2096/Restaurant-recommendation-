@@ -1,0 +1,16 @@
+# Env and secrets (do not commit API keys)
+.env
+.env.local
+
+# Virtual env and caches
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# Phase 1
+*.db
+phase1_data_pipeline/.hf_cache/
+phase1_data_pipeline/restaurants*.db

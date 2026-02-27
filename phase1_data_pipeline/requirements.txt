@@ -1,0 +1,4 @@
+# Phase 1: Data Pipeline & Restaurant Store
+datasets>=2.14.0
+pandas>=2.0.0
+huggingface_hub>=0.17.0
