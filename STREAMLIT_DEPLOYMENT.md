@@ -31,7 +31,7 @@ Then open **http://localhost:8501** in your browser.
 
 4. **Requirements:** Use the repo root **`requirements.txt`** (or **`requirements-streamlit.txt`**). Both include Streamlit, FastAPI, Pydantic, Groq, and python-dotenv so the app and phase2_api load correctly.
 
-5. **Database:** The app expects `phase1_data_pipeline/restaurants.db`. If the file is missing (e.g. on first deploy, since the DB is gitignored), the app will **create it on first run**: it runs the data pipeline once (with a subset of the dataset), then reloads. No manual setup or setup script is required. Optionally you can still pre-build the DB locally and commit it, or use a setup script.
+5. **Database:** The app expects `phase1_data_pipeline/restaurants.db`. If the file is missing (e.g. on first deploy, since the DB is gitignored), the app will **create it on first run**: it runs the data pipeline once with the **full dataset** (same as the local Phase 4 app), then reloads. First-time load may take a few minutes. No manual setup or setup script is required.
 
 6. **Secrets (optional):** For LLM summaries, set `GROQ_API_KEY` in Streamlit Cloud → App → Settings → Secrets.
 

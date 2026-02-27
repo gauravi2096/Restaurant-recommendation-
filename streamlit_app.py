@@ -3,10 +3,12 @@ Streamlit app for Zomato Restaurant Recommendations.
 
 Run from repo root: streamlit run streamlit_app.py
 Deploy on Streamlit Cloud with this file as the main script.
+UI and dataset match the Phase 4 local web app (same filtering, full DB, same look).
 """
 
 from __future__ import annotations
 
+import html
 import os
 import sys
 from pathlib import Path
@@ -23,6 +25,59 @@ from phase2_api.orchestrator import recommend
 
 DEFAULT_DB = ROOT / "phase1_data_pipeline" / "restaurants.db"
 TOP_N = 15
+
+# Match Phase 4 web UI (phase4_web_ui/css/styles.css): primary #8B1538, light bg, card grid
+PHASE4_CSS = """
+<style>
+  .streamlit-zomato-topbar {
+    background: #8B1538;
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    margin: -1rem -1rem 1rem -1rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+  [data-testid="stAppViewContainer"] { background: #f5f5f5; }
+  [data-testid="stSidebar"] .stButton > button {
+    background: #8B1538 !important;
+    color: #fff !important;
+  }
+  [data-testid="stSidebar"] .stButton > button:hover {
+    background: #a01842 !important;
+  }
+  .streamlit-zomato-summary {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .streamlit-zomato-summary p { margin: 0; line-height: 1.6; color: #1a1a1a; white-space: pre-wrap; }
+  .streamlit-zomato-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+  .streamlit-zomato-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+  .streamlit-zomato-card:hover {
+    background: #fafafa;
+    border-color: #8B1538;
+    box-shadow: 0 4px 12px rgba(139, 21, 56, 0.08);
+  }
+  .streamlit-zomato-card h3 { font-size: 1.05rem; font-weight: 600; margin: 0 0 0.35rem 0; }
+  .streamlit-zomato-card h3 a { color: #8B1538; text-decoration: none; }
+  .streamlit-zomato-card h3 a:hover { text-decoration: underline; }
+  .streamlit-zomato-meta { font-size: 0.85rem; color: #555; margin: 0.25rem 0; }
+  .streamlit-zomato-cuisines { font-size: 0.9rem; margin: 0.35rem 0 0 0; }
+</style>
+"""
 
 # Price range options: (label, min_cost, max_cost) — None means no bound
 PRICE_RANGES = [
@@ -50,13 +105,44 @@ def load_cuisines(store: RestaurantStore) -> list[str]:
     return store.get_distinct_cuisines()
 
 
+def _render_restaurant_card(r: dict) -> str:
+    """HTML for one restaurant card (match Phase 4 js/app.js renderRestaurantCard)."""
+    name = html.escape(str(r.get("name") or "Unnamed"))
+    location_val = str(r.get("location") or "")
+    rate = r.get("rate")
+    rate_str = str(rate) if rate is not None else "—"
+    cost = r.get("cost_for_two")
+    cost_str = f"₹{cost:,}" if cost is not None else "—"
+    cuisines_str = html.escape(str(r.get("cuisines") or ""))
+    url = r.get("url")
+    if url:
+        url_esc = html.escape(url, quote=True)
+        name_html = f'<a href="{url_esc}" target="_blank" rel="noopener">{name}</a>'
+    else:
+        name_html = name
+    meta = f"{location_val} · Rating {rate_str}/5 · {cost_str} for two"
+    meta_esc = html.escape(meta)
+    cuisines_block = f'<p class="streamlit-zomato-cuisines">{cuisines_str}</p>' if cuisines_str else ""
+    return f"""
+    <article class="streamlit-zomato-card">
+      <h3 class="streamlit-zomato-card-name">{name_html}</h3>
+      <p class="streamlit-zomato-meta">{meta_esc}</p>
+      {cuisines_block}
+    </article>
+    """
+
+
 def main() -> None:
     st.set_page_config(
         page_title="Zomato Restaurant Recommendations",
         page_icon="🍽️",
         layout="wide",
     )
-    st.title("🍽️ Zomato Restaurant Recommendations")
+    st.markdown(PHASE4_CSS, unsafe_allow_html=True)
+    st.markdown(
+        '<div class="streamlit-zomato-topbar">◆ Zomato Restaurant Recommendations</div>',
+        unsafe_allow_html=True,
+    )
     st.caption("Find the best places to eat at your location")
 
     db_path = Path(os.environ.get("RESTAURANT_DB_PATH", str(DEFAULT_DB)))
@@ -66,7 +152,7 @@ def main() -> None:
         with st.spinner("First-time setup: loading dataset (this may take a minute)…"):
             try:
                 from phase1_data_pipeline.pipeline import run_pipeline
-                run_pipeline(db_path=str(db_path), max_rows=3000, clear_before=True)
+                run_pipeline(db_path=str(db_path), max_rows=None, clear_before=True)
             except Exception as e:
                 st.error(f"Could not create database: {e}")
                 return
@@ -135,8 +221,10 @@ def main() -> None:
 
     if summary:
         st.subheader("Summary")
-        st.write(summary)
-        st.divider()
+        st.markdown(
+            f'<div class="streamlit-zomato-summary"><p class="streamlit-zomato-summary-text">{html.escape(summary)}</p></div>',
+            unsafe_allow_html=True,
+        )
 
     st.subheader("Restaurants")
     if not restaurants:
@@ -146,28 +234,11 @@ def main() -> None:
     if relaxed:
         st.caption("Some filters were relaxed to show results.")
 
-    st.caption(f"{len(restaurants)} restaurant{'s' if len(restaurants) != 1 else ''}")
+    count_text = f"{len(restaurants)} restaurant{'s' if len(restaurants) != 1 else ''}"
+    st.caption(count_text)
 
-    for r in restaurants:
-        name = r.get("name") or "Unnamed"
-        location_val = r.get("location") or ""
-        rate = r.get("rate")
-        cost = r.get("cost_for_two")
-        cuisines_str = r.get("cuisines") or ""
-        url = r.get("url")
-
-        rate_str = f"{rate}/5" if rate is not None else "—"
-        cost_str = f"₹{cost:,}" if cost is not None else "—"
-        meta = f"{location_val} · Rating {rate_str} · {cost_str} for two"
-        with st.container():
-            if url:
-                st.markdown(f"### [{name}]({url})")
-            else:
-                st.markdown(f"### {name}")
-            st.caption(meta)
-            if cuisines_str:
-                st.write(cuisines_str)
-            st.divider()
+    cards_html = "".join(_render_restaurant_card(r) for r in restaurants)
+    st.markdown(f'<div class="streamlit-zomato-grid">{cards_html}</div>', unsafe_allow_html=True)
 
 
 main()
