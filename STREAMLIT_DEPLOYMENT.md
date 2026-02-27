@@ -29,7 +29,7 @@ Then open **http://localhost:8501** in your browser.
    - **Main file path:** `streamlit_app.py`
    - **Advanced settings** → **Python version:** 3.9 or 3.10
 
-4. **Requirements:** In "Advanced settings", set **Requirements file** to `requirements-streamlit.txt` (or create a root `requirements.txt` that includes the same dependencies).
+4. **Requirements:** Use the repo root **`requirements.txt`** (or **`requirements-streamlit.txt`**). Both include Streamlit, FastAPI, Pydantic, Groq, and python-dotenv so the app and phase2_api load correctly.
 
 5. **Database:** The app expects `phase1_data_pipeline/restaurants.db`. Either:
    - **Option A:** Run the pipeline locally, commit `phase1_data_pipeline/restaurants.db` (if acceptable size), and deploy.

@@ -1,0 +1,8 @@
+# All dependencies for Streamlit app (Phases 1–3).
+# Use this file as the requirements file in Streamlit Cloud if using default "requirements.txt".
+# FastAPI is required because phase2_api package imports .api (create_app) at load time.
+streamlit>=1.28.0
+pydantic>=2.0.0
+fastapi>=0.104.0
+groq>=0.4.0
+python-dotenv>=1.0.0

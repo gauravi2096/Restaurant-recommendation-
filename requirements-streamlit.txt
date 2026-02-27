@@ -1,5 +1,7 @@
 # Streamlit app + recommendation engine (Phases 1–3)
+# Include FastAPI because phase2_api/__init__.py imports .api (create_app), which uses FastAPI.
 streamlit>=1.28.0
 pydantic>=2.0.0
+fastapi>=0.104.0
 groq>=0.4.0
 python-dotenv>=1.0.0
