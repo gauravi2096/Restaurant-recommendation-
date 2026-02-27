@@ -27,70 +27,216 @@ from phase2_api.orchestrator import recommend
 DEFAULT_DB = ROOT / "phase1_data_pipeline" / "restaurants.db"
 TOP_N = 15
 
-# Match Phase 4 web UI (phase4_web_ui/css/styles.css): primary #8B1538, light bg, card grid
-PHASE4_CSS = """
+# Zomato-style design tokens (aligned with phase4_web_ui/css/styles.css)
+PRIMARY = "#8B1538"
+PRIMARY_HOVER = "#a01842"
+BG = "#f5f5f5"
+SURFACE = "#ffffff"
+BORDER = "#e0e0e0"
+TEXT = "#1a1a1a"
+TEXT_MUTED = "#555"
+RADIUS = "12px"
+RADIUS_SM = "8px"
+
+# Main app CSS: header, sidebar, main layout, summary card, typography
+PHASE4_CSS = f"""
 <style>
-  .streamlit-zomato-topbar {
-    background: #8B1538;
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap');
+  :root {{
+    --zomato-primary: {PRIMARY};
+    --zomato-primary-hover: {PRIMARY_HOVER};
+    --zomato-bg: {BG};
+    --zomato-surface: {SURFACE};
+    --zomato-border: {BORDER};
+    --zomato-text: {TEXT};
+    --zomato-text-muted: {TEXT_MUTED};
+    --zomato-radius: {RADIUS};
+    --zomato-radius-sm: {RADIUS_SM};
+    --zomato-font: "DM Sans", system-ui, -apple-system, sans-serif;
+  }}
+  [data-testid="stAppViewContainer"] {{
+    background: var(--zomato-bg);
+    font-family: var(--zomato-font);
+  }}
+  [data-testid="stAppViewContainer"] > section > div {{
+    padding-left: 2rem;
+    padding-right: 2rem;
+    padding-top: 0;
+    max-width: 1400px;
+    margin: 0 auto;
+  }}
+  .streamlit-zomato-topbar {{
+    background: var(--zomato-primary);
     color: #fff;
-    padding: 0.75rem 1.5rem;
-    margin: -1rem -1rem 1rem -1rem;
-    font-size: 1.15rem;
+    padding: 1rem 2rem;
+    margin: 0 -2rem 1.5rem -2rem;
+    font-family: var(--zomato-font);
+    font-size: 1.25rem;
     font-weight: 600;
-  }
-  [data-testid="stAppViewContainer"] { background: #f5f5f5; }
-  [data-testid="stSidebar"] .stButton > button {
-    background: #8B1538 !important;
-    color: #fff !important;
-  }
-  [data-testid="stSidebar"] .stButton > button:hover {
-    background: #a01842 !important;
-  }
-  .streamlit-zomato-summary {
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
-    padding: 1.25rem;
+    letter-spacing: 0.01em;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }}
+  .streamlit-zomato-tagline {{
+    font-family: var(--zomato-font);
+    font-size: 0.95rem;
+    color: var(--zomato-text-muted);
+    margin: -0.5rem 0 1.5rem 0;
+    font-weight: 500;
+  }}
+  [data-testid="stSidebar"] {{
+    background: #e8e8e8 !important;
+    border-right: 1px solid var(--zomato-border);
+  }}
+  [data-testid="stSidebar"] [data-testid="stMarkdown"] {{
+    font-family: var(--zomato-font);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--zomato-text);
+    margin-bottom: 0.5rem;
+  }}
+  [data-testid="stSidebar"] label {{
+    font-family: var(--zomato-font) !important;
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    color: var(--zomato-text-muted) !important;
+  }}
+  [data-testid="stSidebar"] .stSelectbox > div {{
     margin-bottom: 1rem;
+  }}
+  [data-testid="stSidebar"] .stButton > button {{
+    background: var(--zomato-primary) !important;
+    color: #fff !important;
+    font-family: var(--zomato-font) !important;
+    font-weight: 600 !important;
+    padding: 0.7rem 1.25rem !important;
+    border-radius: var(--zomato-radius-sm) !important;
+    width: 100%;
+    margin-top: 0.25rem;
+    border: none !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }}
+  [data-testid="stSidebar"] .stButton > button:hover {{
+    background: var(--zomato-primary-hover) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }}
+  .zomato-section-title {{
+    font-family: var(--zomato-font) !important;
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    color: var(--zomato-text) !important;
+    margin: 0 0 0.75rem 0 !important;
+  }}
+  .streamlit-zomato-summary {{
+    background: var(--zomato-surface);
+    border: 1px solid var(--zomato-border);
+    border-radius: var(--zomato-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-  }
-  .streamlit-zomato-summary p { margin: 0; line-height: 1.6; color: #1a1a1a; white-space: pre-wrap; }
-  .streamlit-zomato-grid {
+  }}
+  .streamlit-zomato-summary p {{
+    margin: 0;
+    line-height: 1.65;
+    color: var(--zomato-text);
+    font-size: 1rem;
+    white-space: pre-wrap;
+  }}
+  .zomato-results-count {{
+    font-family: var(--zomato-font);
+    font-size: 0.9rem;
+    color: var(--zomato-text-muted);
+    margin: -0.25rem 0 1rem 0;
+  }}
+  .streamlit-zomato-grid {{
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.25rem;
-  }
-  .streamlit-zomato-card {
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
+  }}
+  .streamlit-zomato-card {{
+    background: var(--zomato-surface);
+    border: 1px solid var(--zomato-border);
+    border-radius: var(--zomato-radius);
     padding: 1.25rem;
     transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
-  }
-  .streamlit-zomato-card:hover {
+  }}
+  .streamlit-zomato-card:hover {{
     background: #fafafa;
-    border-color: #8B1538;
+    border-color: var(--zomato-primary);
     box-shadow: 0 4px 12px rgba(139, 21, 56, 0.08);
-  }
-  .streamlit-zomato-card h3 { font-size: 1.05rem; font-weight: 600; margin: 0 0 0.35rem 0; }
-  .streamlit-zomato-card h3 a { color: #8B1538; text-decoration: none; }
-  .streamlit-zomato-card h3 a:hover { text-decoration: underline; }
-  .streamlit-zomato-meta { font-size: 0.85rem; color: #555; margin: 0.25rem 0; }
-  .streamlit-zomato-cuisines { font-size: 0.9rem; margin: 0.35rem 0 0 0; }
+  }}
+  .streamlit-zomato-card h3 {{
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0 0 0.35rem 0;
+  }}
+  .streamlit-zomato-card h3 a {{
+    color: var(--zomato-primary);
+    text-decoration: none;
+  }}
+  .streamlit-zomato-card h3 a:hover {{
+    text-decoration: underline;
+  }}
+  .streamlit-zomato-meta {{
+    font-size: 0.85rem;
+    color: var(--zomato-text-muted);
+    margin: 0.25rem 0;
+  }}
+  .streamlit-zomato-cuisines {{
+    font-size: 0.9rem;
+    color: var(--zomato-text);
+    margin: 0.35rem 0 0 0;
+  }}
 </style>
 """
 
-# CSS for restaurant grid when rendered via components.html (iframe does not inherit page CSS)
-GRID_IFRAME_CSS = """
-  .streamlit-zomato-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
-  .streamlit-zomato-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; }
-  .streamlit-zomato-card:hover { background: #fafafa; border-color: #8B1538; box-shadow: 0 4px 12px rgba(139, 21, 56, 0.08); }
-  .streamlit-zomato-card h3 { font-size: 1.05rem; font-weight: 600; margin: 0 0 0.35rem 0; }
-  .streamlit-zomato-card h3 a { color: #8B1538; text-decoration: none; }
-  .streamlit-zomato-card h3 a:hover { text-decoration: underline; }
-  .streamlit-zomato-meta { font-size: 0.85rem; color: #555; margin: 0.25rem 0; }
-  .streamlit-zomato-cuisines { font-size: 0.9rem; margin: 0.35rem 0 0 0; }
-  body { margin: 0; font-family: system-ui, sans-serif; background: transparent; }
+# CSS for restaurant grid iframe (same design tokens, self-contained)
+GRID_IFRAME_CSS = f"""
+  * {{ box-sizing: border-box; }}
+  body {{ margin: 0; font-family: "DM Sans", system-ui, sans-serif; background: transparent; font-size: 16px; line-height: 1.5; }}
+  .streamlit-zomato-grid {{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+    padding: 0;
+  }}
+  .streamlit-zomato-card {{
+    background: #fff;
+    border: 1px solid {BORDER};
+    border-radius: {RADIUS};
+    padding: 1.25rem;
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }}
+  .streamlit-zomato-card:hover {{
+    background: #fafafa;
+    border-color: {PRIMARY};
+    box-shadow: 0 4px 12px rgba(139, 21, 56, 0.08);
+  }}
+  .streamlit-zomato-card h3 {{
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0 0 0.35rem 0;
+    color: #1a1a1a;
+  }}
+  .streamlit-zomato-card h3 a {{
+    color: {PRIMARY};
+    text-decoration: none;
+  }}
+  .streamlit-zomato-card h3 a:hover {{
+    text-decoration: underline;
+  }}
+  .streamlit-zomato-meta {{
+    font-size: 0.85rem;
+    color: #555;
+    margin: 0.25rem 0;
+  }}
+  .streamlit-zomato-cuisines {{
+    font-size: 0.9rem;
+    color: #1a1a1a;
+    margin: 0.35rem 0 0 0;
+  }}
+  @media (max-width: 640px) {{
+    .streamlit-zomato-grid {{ grid-template-columns: 1fr; }}
+  }}
 """
 
 # Price range options: (label, min_cost, max_cost) — None means no bound
@@ -150,10 +296,10 @@ def main() -> None:
     )
     st.markdown(PHASE4_CSS, unsafe_allow_html=True)
     st.markdown(
-        '<div class="streamlit-zomato-topbar">◆ Zomato Restaurant Recommendations</div>',
+        '<div class="streamlit-zomato-topbar">◆ Zomato Restaurant Recommendations</div>'
+        '<p class="streamlit-zomato-tagline">Find the best places to eat at your location</p>',
         unsafe_allow_html=True,
     )
-    st.caption("Find the best places to eat at your location")
 
     db_path = Path(os.environ.get("RESTAURANT_DB_PATH", str(DEFAULT_DB)))
     if not db_path.is_file():
@@ -230,13 +376,13 @@ def main() -> None:
     relaxed = result.get("relaxed", False)
 
     if summary:
-        st.subheader("Summary")
+        st.markdown('<h2 class="zomato-section-title">Summary</h2>', unsafe_allow_html=True)
         st.markdown(
             f'<div class="streamlit-zomato-summary"><p class="streamlit-zomato-summary-text">{html.escape(summary)}</p></div>',
             unsafe_allow_html=True,
         )
 
-    st.subheader("Restaurants")
+    st.markdown('<h2 class="zomato-section-title">Restaurants</h2>', unsafe_allow_html=True)
     if not restaurants:
         st.warning("We couldn't find any restaurants that match your current preferences.")
         return
@@ -245,7 +391,7 @@ def main() -> None:
         st.caption("Some filters were relaxed to show results.")
 
     count_text = f"{len(restaurants)} restaurant{'s' if len(restaurants) != 1 else ''}"
-    st.caption(count_text)
+    st.markdown(f'<p class="zomato-results-count">{count_text}</p>', unsafe_allow_html=True)
 
     cards_html = "".join(_render_restaurant_card(r) for r in restaurants)
     grid_doc = f"""<!DOCTYPE html><html><head><style>{GRID_IFRAME_CSS}</style></head><body><div class="streamlit-zomato-grid">{cards_html}</div></body></html>"""
