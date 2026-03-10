@@ -124,12 +124,13 @@ PHASE4_CSS = f"""
   [data-testid="stSidebar"] .stButton:first-of-type > button {{
     background: transparent !important;
     color: var(--zomato-text) !important;
-    border: 2px solid var(--zomato-border) !important;
+    border: none !important;
     box-shadow: none !important;
+    text-decoration: underline !important;
   }}
   [data-testid="stSidebar"] .stButton:first-of-type > button:hover {{
     background: rgba(0,0,0,0.05) !important;
-    border-color: var(--zomato-text-muted) !important;
+    text-decoration: underline !important;
   }}
   .zomato-section-title {{
     font-family: var(--zomato-font) !important;
