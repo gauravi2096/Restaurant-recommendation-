@@ -87,11 +87,13 @@ PHASE4_CSS = f"""
     background: #e8e8e8 !important;
     border-right: 1px solid var(--zomato-border);
   }}
-  [data-testid="stSidebar"] [data-testid="stMarkdown"] {{
+  [data-testid="stSidebar"] [data-testid="stMarkdown"],
+  [data-testid="stSidebar"] h2,
+  [data-testid="stSidebar"] h3 {{
     font-family: var(--zomato-font);
     font-size: 1.05rem;
     font-weight: 600;
-    color: var(--zomato-text);
+    color: #000 !important;
     margin-bottom: 0.5rem;
   }}
   [data-testid="stSidebar"] label {{
@@ -326,7 +328,16 @@ def main() -> None:
         store.close()
 
     with st.sidebar:
-        st.subheader("Filters")
+        col_head, col_reset = st.columns([3, 1])
+        with col_head:
+            st.subheader("Filters")
+        with col_reset:
+            reset_clicked = st.button("Reset", key="filter_reset")
+        if reset_clicked:
+            for key in ("location", "price", "min_rating", "cuisine"):
+                if key in st.session_state:
+                    del st.session_state[key]
+            st.rerun()
         location = st.selectbox(
             "Location",
             options=[None] + locations,
