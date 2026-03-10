@@ -105,6 +105,10 @@ PHASE4_CSS = f"""
   [data-testid="stSidebar"] .stSelectbox > div {{
     margin-bottom: 1rem;
   }}
+  [data-testid="stSidebar"] > div > div:first-child {{
+    display: flex !important;
+    align-items: center !important;
+  }}
   [data-testid="stSidebar"] .stButton > button {{
     background: var(--zomato-primary) !important;
     color: #fff !important;
