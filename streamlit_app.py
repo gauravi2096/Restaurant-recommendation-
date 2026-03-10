@@ -121,6 +121,16 @@ PHASE4_CSS = f"""
     background: var(--zomato-primary-hover) !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }}
+  [data-testid="stSidebar"] .stButton:first-of-type > button {{
+    background: transparent !important;
+    color: var(--zomato-text) !important;
+    border: 2px solid var(--zomato-border) !important;
+    box-shadow: none !important;
+  }}
+  [data-testid="stSidebar"] .stButton:first-of-type > button:hover {{
+    background: rgba(0,0,0,0.05) !important;
+    border-color: var(--zomato-text-muted) !important;
+  }}
   .zomato-section-title {{
     font-family: var(--zomato-font) !important;
     font-size: 1.1rem !important;
@@ -328,15 +338,16 @@ def main() -> None:
         store.close()
 
     with st.sidebar:
-        col_head, col_reset = st.columns([3, 1])
+        col_head, col_reset = st.columns([1, 1])
         with col_head:
             st.subheader("Filters")
         with col_reset:
             reset_clicked = st.button("Reset", key="filter_reset")
         if reset_clicked:
-            for key in ("location", "price", "min_rating", "cuisine"):
-                if key in st.session_state:
-                    del st.session_state[key]
+            st.session_state["location"] = None
+            st.session_state["price"] = 0
+            st.session_state["min_rating"] = "Any"
+            st.session_state["cuisine"] = None
             st.rerun()
         location = st.selectbox(
             "Location",
